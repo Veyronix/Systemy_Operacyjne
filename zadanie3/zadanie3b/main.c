@@ -6,6 +6,11 @@
 #include <sys/resource.h>
 #include <sys/wait.h>
 
+
+
+struct rlimit limitTime;
+struct rlimit limitSize;
+
 void interpretator(char* text){
     printf("\nLaunch: %s\n",text);
     if(text[strlen(text)-1] == '\n') {
@@ -29,6 +34,7 @@ void interpretator(char* text){
     }
 
     struct rusage usage;
+    struct timeval end;
     pid_t pid = fork();
     if (pid > 0) {
         int status;
@@ -38,14 +44,26 @@ void interpretator(char* text){
             printf("\npotomek przegral\n");
             exit(2);
         }
+        getrusage(RUSAGE_CHILDREN, &usage);
+        end = usage.ru_utime;
+        printf("\nU time: %ld.%lds\n", end.tv_sec, end.tv_usec);
+        end = usage.ru_stime;
+        printf("S time: %ld.%lds\n\n", end.tv_sec, end.tv_usec);
         if(WIFSIGNALED(status)){
-            printf("terminated %d" , WTERMSIG(status));
+            printf("\nterminated %s with code %d\n" ,text, WTERMSIG(status));
             exit(WTERMSIG(status));
 
         }
         return;
     }
     else if( pid == 0){
+
+        if(setrlimit(RLIMIT_CPU,&limitTime)){
+            printf("oje");
+        }
+        if(setrlimit(RLIMIT_AS,&limitSize)) {
+            printf("ojej");
+        }
         tmpAll[0]=command;
         printf("%s",command);
 
@@ -56,12 +74,13 @@ void interpretator(char* text){
             }
         }
     }
+    
 }
 
 
 int main(int argc,char* argv[]) {
 
-    if(argc != 2){
+    if(argc != 4){
         printf("Bad amount of arguments");
         exit(1);
     }
@@ -70,6 +89,12 @@ int main(int argc,char* argv[]) {
         printf("Cant open file");
         exit(1);
     }
+    int time = atoi(argv[2]);
+    int size = atoi(argv[3]);
+    limitSize.rlim_max=size*1048576;
+    limitSize.rlim_cur=size*1048576;
+    limitTime.rlim_max=time;
+    limitTime.rlim_cur=time;
     char line [ 128 ];
     while ( fgets ( line, sizeof line, file ) != NULL ){
         interpretator(line);
