@@ -78,6 +78,7 @@ void walkingThroughTreeSys(char *path,time_t date,char comparator){
                 struct rusage usage;
                 if(pid == 0){
                     walkingThroughTreeSys(str,date,comparator);
+                    exit(0);
                 }
                 else if(pid >0){
                     int status;
@@ -86,6 +87,7 @@ void walkingThroughTreeSys(char *path,time_t date,char comparator){
                         printf("\npotomek przegral\n");
                         exit(2);
                     }
+                    exit;
                 }
                 else{
                     printf("\nPid lower than 0.\n");
@@ -130,7 +132,6 @@ int main(int argc,char* argv[]) {
             exit(1);
         }
         walkingThroughTreeSys(path,date,argv[2][0]);
-        printf("\nDrugi sposob teraz\n");
         return 0;
     }else{
         printf("Bad secound of argument");

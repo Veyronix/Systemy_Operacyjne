@@ -12,7 +12,6 @@ struct rlimit limitTime;
 struct rlimit limitSize;
 
 void interpretator(char* text){
-    printf("\nLaunch: %s\n",text);
     if(text[strlen(text)-1] == '\n') {
         text[strlen(text) - 1] = 0;
     }
@@ -21,17 +20,16 @@ void interpretator(char* text){
     strcpy(tmp, text);
     char *command= strtok(tmp, " ");
     if(command==NULL){
-        printf("zle");
         return;
     }
     if(strstr(command, "\n")){
-        printf("o nie");
         return;
     }
     int i = 0;
     while((tmpAll[i] = strtok(NULL," "))!= NULL){
         i++;
     }
+    printf("\nLaunch: %s\n",text);
 
     struct rusage usage;
     struct timeval end;
@@ -41,7 +39,7 @@ void interpretator(char* text){
 
         wait3(&status,0,&usage);
         if(WIFEXITED(status) && WEXITSTATUS(status) != 0){
-            printf("\npotomek przegral\n");
+            printf("\nChild process didnt done their job.\n");
             exit(2);
         }
         getrusage(RUSAGE_CHILDREN, &usage);
@@ -50,31 +48,31 @@ void interpretator(char* text){
         end = usage.ru_stime;
         printf("S time: %ld.%lds\n\n", end.tv_sec, end.tv_usec);
         if(WIFSIGNALED(status)){
-            printf("\nterminated %s with code %d\n" ,text, WTERMSIG(status));
+            printf("Terminated proces with code %d" , WTERMSIG(status));
             exit(WTERMSIG(status));
-
         }
-        return;
+
+
     }
-    else if( pid == 0){
+    else if( pid == 0) {
 
-        if(setrlimit(RLIMIT_CPU,&limitTime)){
-            printf("oje");
+        if (setrlimit(RLIMIT_CPU, &limitTime)) {
+            printf("Couldnt set limit on time.");
         }
-        if(setrlimit(RLIMIT_AS,&limitSize)) {
-            printf("ojej");
+        if (setrlimit(RLIMIT_AS, &limitSize)) {
+            printf("Couldnt set limit on size.");
         }
-        tmpAll[0]=command;
-        printf("%s",command);
+        tmpAll[0] = command;
+        printf("%s", command);
 
-        if(execv(command,tmpAll)== -1){
+        if (execv(command, tmpAll) == -1) {
             if (execvp(command, tmpAll) == -1) {
-                printf("ups");
+                printf("Couldnt find program.");
                 exit(1);
             }
         }
+        exit;
     }
-    
 }
 
 
@@ -98,6 +96,7 @@ int main(int argc,char* argv[]) {
     char line [ 128 ];
     while ( fgets ( line, sizeof line, file ) != NULL ){
         interpretator(line);
+
     }
     fclose(file);
     return 0;
