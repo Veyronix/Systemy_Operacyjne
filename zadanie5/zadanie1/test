@@ -1,0 +1,5 @@
+ ls -al | grep d | grep 23| grep 23| grep 23 | grep 40
+ls | grep test
+pwd
+
+
