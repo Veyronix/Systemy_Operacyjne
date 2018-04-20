@@ -14,7 +14,7 @@ int how_much;
 int no_pipes;
 int **fds;
 
-void ponizszy(char *program){
+void subprogram(char *program){
     char *tmp = program;
     int i = 1;
     
@@ -68,40 +68,40 @@ void interpretator(char* text){
         fds[i] = malloc(sizeof(int) * 2);
         pipe(fds[i]);
     }
-    pid_t pid;
+
     pid_t child_pid = fork();
-        
+    // doing first subprogram
     if (child_pid == 0)
     {
         if (no_pipes > 0)
         {
-        
-        dup2(fds[0][WRITE_END], STDOUT_FILENO);
-        for (int i = 0; i < no_pipes; i++)
-        {
-            close(fds[i][READ_END]);
-            close(fds[i][WRITE_END]);
+            dup2(fds[0][WRITE_END], STDOUT_FILENO);
+            for (int i = 0; i < no_pipes; i++)
+            {
+                close(fds[i][READ_END]);
+                close(fds[i][WRITE_END]);
+            }
         }
-        }
-        ponizszy(order);
+        subprogram(order);
         
     }
     order =strtok(NULL,"|");
+    // doing programs after Pipe
     for (int i = 0; i < no_pipes; i++)
     {   
         
         child_pid = fork();
         if (child_pid == 0)
         {
-        dup2(fds[i][READ_END], STDIN_FILENO);
-        if (i + 1 != no_pipes)
-            dup2(fds[i + 1][WRITE_END], STDOUT_FILENO);
-        for (int i = 0; i < no_pipes; i++)
-        {
-            close(fds[i][READ_END]);
-            close(fds[i][WRITE_END]);
-        }
-        ponizszy(order);
+            dup2(fds[i][READ_END], STDIN_FILENO);
+            if (i + 1 != no_pipes)
+                dup2(fds[i + 1][WRITE_END], STDOUT_FILENO);
+            for (int i = 0; i < no_pipes; i++)
+            {
+                close(fds[i][READ_END]);
+                close(fds[i][WRITE_END]);
+            }
+            subprogram(order);
         }
         order = strtok(NULL,"|");
     }
@@ -122,7 +122,6 @@ void interpretator(char* text){
         return 0;
     }
 
-    exit(0);
 }
 
 
