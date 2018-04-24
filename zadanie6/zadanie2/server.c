@@ -9,7 +9,7 @@
 #include <time.h>
 #include<signal.h>
 
-#define SERVER_QUEUE_NAME   "/server1"
+#define SERVER_QUEUE_NAME   "/server"
 #define QUEUE_PERMISSIONS 0660
 #define MAX_MESSAGES 10
 #define MAX_MSG_SIZE 256
@@ -62,7 +62,7 @@ void delete_all_qd(){
             mq_close(customers[i].qd_client);
         }
     }
-    printf("usuwam wszystko\n");
+    printf("Deleting all queues o\n");
     mq_close(qd_server);
     mq_unlink(SERVER_QUEUE_NAME);
 }
@@ -160,7 +160,6 @@ int main (int argc, char **argv)
     atexit(delete_all_qd);
     signal(SIGINT,handlerSIGINT);
     while (1) {
-        // get the oldest message with highest priority
         in_buffer=(char*)calloc(MSG_BUFFER_SIZE,sizeof(char));
         out_buffer=(char*)calloc(MSG_BUFFER_SIZE,sizeof(char));
         if (mq_receive (qd_server, in_buffer, MSG_BUFFER_SIZE, NULL) == -1) {

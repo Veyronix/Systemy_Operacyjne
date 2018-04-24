@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,7 +9,7 @@
 #include <mqueue.h>
 #include <signal.h>
 
-#define SERVER_QUEUE_NAME   "/server1"
+#define SERVER_QUEUE_NAME   "/server"
 #define QUEUE_PERMISSIONS 0660
 #define MAX_MESSAGES 10
 #define MAX_MSG_SIZE 256
@@ -28,9 +29,9 @@ void handlerSIGINT(){
 void close_customer_qd(){
     sprintf(out_buffer,"%d %s",index_from_server,"STOP");
     if (mq_send (qd_server, out_buffer, strlen (out_buffer), 0) == -1) {
-        perror ("Client: Not able to send message to server");
+        perror (" Not able to send message to server");
     }
-    printf("\nZAMYKAM SIE\n");
+    printf("\nEnding customer\n");
     mq_close(qd_client);
     mq_unlink(client_queue_name);
 }
@@ -41,7 +42,7 @@ int main (int argc, char **argv)
     }
     else if(argc == 3){
         if(strcmp(argv[1],"-file")!=0){
-            printf("zly pierwszy argument");
+            printf("bad first argument");
             exit(1);
         }
         kind_of_giving_arguments = 1;
@@ -61,12 +62,12 @@ int main (int argc, char **argv)
     attr.mq_curmsgs = 0;
 
     if ((qd_client = mq_open (client_queue_name, O_RDONLY | O_CREAT, QUEUE_PERMISSIONS, &attr)) == -1) {
-        perror ("Client: mq_open (client)");
+        perror ("mq_open (client)");
         exit (1);
     }
 
     if ((qd_server = mq_open (SERVER_QUEUE_NAME, O_WRONLY)) == -1) {
-        perror ("Client: mq_open (server)");
+        perror (" mq_open (server)");
         exit (1);
     }
     
@@ -74,11 +75,11 @@ int main (int argc, char **argv)
     in_buffer=(char*)calloc(MSG_BUFFER_SIZE,sizeof(char));
         out_buffer=(char*)calloc(MSG_BUFFER_SIZE,sizeof(char));
     if (mq_send (qd_server, client_queue_name, strlen (client_queue_name), 0) == -1) {
-        perror ("Client: Not able to send message to server");
+        perror ("Not able to send message to server");
         exit(2);
     }
     if (mq_receive (qd_client, in_buffer, MSG_BUFFER_SIZE, NULL) == -1) {
-        perror ("Client: mq_receive");
+        perror (" mq_receive");
         exit (2);
     }
     atexit(close_customer_qd);
@@ -94,7 +95,6 @@ int main (int argc, char **argv)
     }
     while (1) {
         char str[30];
-        // send message to server
         in_buffer=(char*)calloc(MSG_BUFFER_SIZE,sizeof(char));
         out_buffer=(char*)calloc(MSG_BUFFER_SIZE,sizeof(char));
         if(kind_of_giving_arguments == 0){
@@ -137,11 +137,11 @@ int main (int argc, char **argv)
                 int sec_num = atoi(strtok(NULL," "));
                 sprintf (out_buffer, "%d CALC %s %d %d",index_from_server,kind_of_operation,first_num,sec_num);
                 if (mq_send (qd_server, out_buffer, strlen (out_buffer), 0) == -1) {
-                    perror ("Client: Not able to send message to server");
+                    printf("Not able to send message to server");
                     continue;
                 }
                 if (mq_receive (qd_client, in_buffer, MSG_BUFFER_SIZE, NULL) == -1) {
-                    perror ("Client: mq_receive");
+                    printf("mq_receive");
                     exit (1);
                 }
                 printf("%s\n",in_buffer);
@@ -153,11 +153,11 @@ int main (int argc, char **argv)
         else if(strcmp(operation,"TIME")==0){
             sprintf(out_buffer,"%d %s",index_from_server,operation);
             if (mq_send (qd_server, out_buffer, strlen (out_buffer), 0) == -1) {
-                perror ("Client: Not able to send message to server");
+                printf(" Not able to send message to server");
                 continue;
             }
             if (mq_receive (qd_client, in_buffer, MSG_BUFFER_SIZE, NULL) == -1) {
-                perror ("Client: mq_receive");
+                printf("mq_receive");
                 exit (1);
             }
             printf("%s\n",in_buffer);
@@ -168,7 +168,7 @@ int main (int argc, char **argv)
         else if(strcmp(operation,"END")==0){
             sprintf(out_buffer,"%d %s",index_from_server,operation);
             if (mq_send (qd_server, out_buffer, strlen (out_buffer), 0) == -1) {
-                perror ("Client: Not able to send message to server");
+                perror ("Not able to send message to server");
                 continue;
             }
             exit(0);
